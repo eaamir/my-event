@@ -44,8 +44,8 @@ export class AuthService {
       phone,
       createdAt: { $gt: oneHourAgo },
     });
-    if (recentCount > 5)
-      throw new BadRequestException('Too many requests, try later');
+    // if (recentCount > 5)
+    //   throw new BadRequestException('Too many requests, try later');
 
     const otp = this.generateOtp();
     const otpHash = await bcrypt.hash(otp, 10);
