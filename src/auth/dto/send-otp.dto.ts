@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class SendOtpDto {
   @ApiProperty({
-    example: '+989123456789',
+    example: '09123456789',
     description: 'Phone number in Iran format',
   })
   @IsString()

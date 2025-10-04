@@ -1,11 +1,11 @@
-import { IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsString, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class VerifyOtpDto {
-  @ApiProperty({ example: '09121234567', description: 'شماره موبایل ایران' })
+  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5...' })
+  @IsNotEmpty()
   @IsString()
-  @Length(11, 11)
-  phone: string;
+  tempToken: string;
 
   @ApiProperty({ example: '123456', description: 'کد OTP' })
   @IsString()

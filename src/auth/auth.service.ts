@@ -53,12 +53,93 @@ export class AuthService {
 
     await this.otpModel.create({ phone, otpHash, expiresAt, attempts: 0 });
 
+    // تولید temp token
+    const tempToken = this.jwtService.sign(
+      { phone },
+      { secret: process.env.TEMP_SECRET, expiresIn: '5m' },
+    );
+
     console.log(`OTP for ${phone}: ${otp}`);
-    return { success: true, message: 'OTP sent (in dev printed to console)' };
+    return {
+      success: true,
+      message: 'OTP sent (in dev printed to console)',
+      tempToken,
+      otp,
+    };
   }
 
-  async verifyOtp(rawPhone: string, otp: string) {
-    const phone = normalizeIranPhone(rawPhone);
+  // async verifyOtp(rawPhone: string, otp: string) {
+  //   const phone = normalizeIranPhone(rawPhone);
+  //   const record = await this.otpModel
+  //     .findOne({ phone })
+  //     .sort({ createdAt: -1 });
+
+  //   if (!record) throw new UnauthorizedException('OTP not found');
+  //   if (record.expiresAt < new Date()) {
+  //     await this.otpModel.deleteOne({ _id: record._id });
+  //     throw new UnauthorizedException('OTP expired');
+  //   }
+  //   if (record.attempts >= 5) {
+  //     throw new UnauthorizedException('Too many wrong attempts');
+  //   }
+
+  //   const match = await bcrypt.compare(otp, record.otpHash);
+  //   if (!match) {
+  //     record.attempts += 1;
+  //     await record.save();
+  //     throw new UnauthorizedException('Invalid OTP');
+  //   }
+
+  //   // OTP ok -> otp delete
+  //   await this.otpModel.deleteOne({ _id: record._id });
+
+  //   // find or create user
+  //   let user = await this.userModel.findOne({ phone });
+  //   if (!user) {
+  //     user = await this.userModel.create({
+  //       phone,
+  //       isVerified: true,
+  //     });
+  //   } else if (!user.isVerified) {
+  //     user.isVerified = true;
+  //     await user.save();
+  //   }
+
+  //   //  tokens
+  //   const payload = { sub: user.id, phone: user.phone };
+
+  //   const accessToken = this.jwtService.sign(payload, {
+  //     secret: process.env.JWT_ACCESS_SECRET,
+  //     expiresIn: process.env.ACCESS_EXPIRES_IN || '15m',
+  //   });
+  //   const refreshToken = this.jwtService.sign(payload, {
+  //     secret: process.env.JWT_REFRESH_SECRET,
+  //     expiresIn: process.env.REFRESH_EXPIRES_IN || '7d',
+  //   });
+
+  //   // refresh token
+  //   user.refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+  //   await user.save();
+
+  //   return {
+  //     accessToken,
+  //     refreshToken,
+  //     user: { phone: user.phone, id: user._id },
+  //   };
+  // }
+
+  async verifyOtp(otp: string, tempToken: string) {
+    // phone از tempToken
+    let phone: string;
+    try {
+      const payload = this.jwtService.verify(tempToken, {
+        secret: process.env.TEMP_SECRET,
+      });
+      phone = payload.phone;
+    } catch (e) {
+      throw new UnauthorizedException('Temp token invalid or expired');
+    }
+
     const record = await this.otpModel
       .findOne({ phone })
       .sort({ createdAt: -1 });
@@ -79,24 +160,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid OTP');
     }
 
-    // OTP ok -> otp delete
     await this.otpModel.deleteOne({ _id: record._id });
 
     // find or create user
     let user = await this.userModel.findOne({ phone });
     if (!user) {
-      user = await this.userModel.create({
-        phone,
-        isVerified: true,
-      });
+      user = await this.userModel.create({ phone, isVerified: true });
     } else if (!user.isVerified) {
       user.isVerified = true;
       await user.save();
     }
 
-    //  tokens
+    // tokens
     const payload = { sub: user.id, phone: user.phone };
-
     const accessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
       expiresIn: process.env.ACCESS_EXPIRES_IN || '15m',
@@ -106,7 +182,6 @@ export class AuthService {
       expiresIn: process.env.REFRESH_EXPIRES_IN || '7d',
     });
 
-    // refresh token
     user.refreshTokenHash = await bcrypt.hash(refreshToken, 10);
     await user.save();
 

@@ -35,7 +35,7 @@ export class AuthController {
 
   @Post('send-otp')
   @ApiOperation({ summary: 'Send OTP to phone' })
-  @ApiResponse({ status: 201, description: 'کد با موفقیت ارسال شد' })
+  @ApiResponse({ status: 201, description: ' کد با موفقیت ارسال شد' })
   @ApiResponse({
     status: 400,
     description: 'تعداد درخواست زیاد یا شماره نامعتبر',
@@ -45,14 +45,16 @@ export class AuthController {
   }
 
   @Post('verify-otp')
-  @ApiOperation({ summary: 'تایید OTP و دریافت توکن‌ها' })
+  @ApiOperation({
+    summary: 'تأیید OTP با tempToken (دریافت access/refresh token)',
+  })
   @ApiResponse({
     status: 200,
     description: 'توکن‌ها صادر شدند',
     type: AuthResponseDto,
   })
   verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtp(dto.phone, dto.otp);
+    return this.authService.verifyOtp(dto.otp, dto.tempToken);
   }
 
   @Post('refresh')
