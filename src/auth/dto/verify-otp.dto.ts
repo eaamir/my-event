@@ -7,8 +7,8 @@ export class VerifyOtpDto {
   @IsString()
   tempToken: string;
 
-  @ApiProperty({ example: '123456', description: 'کد OTP' })
+  @ApiProperty({ example: '1234', description: 'OTP code' })
   @IsString()
-  @Length(6, 6)
+  @Length(4, 4)
   otp: string;
 }

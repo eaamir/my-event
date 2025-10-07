@@ -11,19 +11,24 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
   });
-
-  // Swagger config
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
   const config = new DocumentBuilder()
     .setTitle('Auth API')
     .setDescription('API documentation for authentication service')
     .setVersion('1.0')
-    .addBearerAuth() // برای JWT token
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

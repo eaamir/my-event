@@ -8,7 +8,23 @@ export class AuthResponseDto {
   refreshToken: string;
 
   @ApiProperty({
-    example: { id: '650f2d2c...', phone: '09121234567', name: 'Mahbod', age: 25 },
+    example: {
+      id: '68e3ed9143b5c70a1b4a8736',
+      phone: '09208680168',
+      name: 'مهبد مرتضوی',
+      birth_date: '1379-05-15',
+      gender: '1',
+      role: 'superadmin',
+    },
   })
-  user: { id: string; phone: string; name?: string; age?: number };
+  user: {
+    id: string;
+    phone: string;
+    name?: string;
+    birth_date?: string;
+    gender?: number;
+    role: string;
+    avatar?: string;
+    email?: string;
+  };
 }
