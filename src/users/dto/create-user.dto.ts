@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsIn,
   IsNotEmpty,
+  IsDateString,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -35,7 +36,10 @@ export class CreateUserDto {
     description: 'User birth date',
   })
   @IsOptional()
-  @IsNumber()
+  @IsDateString(
+    {},
+    { message: 'birth_date must be a valid ISO date (YYYY-MM-DD)' },
+  )
   birth_date?: string;
 
   @ApiProperty({
@@ -44,7 +48,7 @@ export class CreateUserDto {
   })
   @IsOptional()
   @IsNumber()
-  @IsIn([1, 2], { message: 'Gender must be 1 or 2' })
+  @IsIn([0, 1, 2], { message: 'Gender must be 0, 1 or 2' })
   gender?: number;
 
   @ApiProperty({
