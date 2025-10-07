@@ -42,6 +42,32 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Get('own-information')
+  @ApiOperation({
+    summary: 'Get own information',
+    description: 'User can get their own information.',
+  })
+  @ApiResponse({ status: 200, description: 'Current user info returned.' })
+  getOwn(@Request() req) {
+    return this.usersService.findOwnInfo(req.user.userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Put('update')
+  @ApiOperation({
+    summary: 'Update own profile',
+    description: 'User can update their own information.',
+  })
+  @ApiBody({
+    type: UpdateUserWithoutRoleDto,
+    description: 'Fields to update own profile',
+  })
+  @ApiResponse({ status: 200, description: 'Profile updated successfully.' })
+  updateOwn(@Request() req, @Body() dto: UpdateUserWithoutRoleDto) {
+    return this.usersService.updateOwn(req.user.userId, dto);
+  }
+
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.SUPERADMIN)
   @Get(':id')
@@ -53,18 +79,6 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User data returned.' })
   getOne(@Param('id') id: string) {
     return this.usersService.findById(id);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Get('own-information')
-  @ApiOperation({
-    summary: 'Get own information',
-    description: 'User can get their own information.',
-  })
-  @ApiBody({ type: UpdateUserWithoutRoleDto, description: 'Fields to update' })
-  @ApiResponse({ status: 200, description: 'Current user info returned.' })
-  getOwn(@Request() req) {
-    return this.usersService.findOwnInfo(req.user.userId);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -92,17 +106,5 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User updated successfully.' })
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Put('update')
-  @ApiOperation({
-    summary: 'Update own profile',
-    description: 'User can update their own information.',
-  })
-  @ApiBody({ type: UpdateUserDto, description: 'Fields to update own profile' })
-  @ApiResponse({ status: 200, description: 'Profile updated successfully.' })
-  updateOwn(@Request() req, @Body() dto: UpdateUserDto) {
-    return this.usersService.updateOwn(req.user.userId, dto);
   }
 }
