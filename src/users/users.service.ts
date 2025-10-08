@@ -5,13 +5,49 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { GetUsersQueryDto } from './dto/get-users-dto';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async findAll() {
-    return this.userModel.find();
+  async findAll(query: GetUsersQueryDto) {
+    const { per_page, page, name, phone, gender, role, status } = query;
+
+    const filters: any = {};
+
+    // Filters for name & phone
+    if (name) filters.name = { $regex: name, $options: 'i' };
+    if (phone) filters.phone = { $regex: phone, $options: 'i' };
+
+    // Convert to string for safe comparison
+    const genderStr = gender !== undefined ? String(gender) : undefined;
+    const statusStr = status !== undefined ? String(status) : undefined;
+
+    // Gender filter
+    if (genderStr === '1' || genderStr === '2') {
+      filters.gender = Number(genderStr); // 1 or 2
+    }
+
+    // Status filter
+    if (statusStr === '0' || statusStr === '1') {
+      filters.status = Number(statusStr); // 0 or 1
+    }
+
+    // Role filter
+    if (role) filters.role = role;
+
+    // Pagination
+    const limit = per_page ? Number(per_page) : 20;
+    const currentPage = page ? Number(page) : 1;
+    const skip = (currentPage - 1) * limit;
+
+    // Fetch users
+    const users = await this.userModel.find(filters).skip(skip).limit(limit);
+
+    const total = await this.userModel.countDocuments(filters);
+
+    return { users, total, page: currentPage, per_page: limit };
   }
 
   async findById(id: string) {

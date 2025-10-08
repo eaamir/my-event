@@ -7,6 +7,7 @@ import {
   Param,
   Request,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -23,6 +24,7 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { GetUsersQueryDto } from './dto/get-users-dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -38,8 +40,8 @@ export class UsersController {
     description: 'Returns a list of all users. Only SUPERADMIN can access.',
   })
   @ApiResponse({ status: 200, description: 'List of users returned.' })
-  getAll() {
-    return this.usersService.findAll();
+  getAll(@Query() query: GetUsersQueryDto) {
+    return this.usersService.findAll(query);
   }
 
   @UseGuards(AuthGuard('jwt'))
