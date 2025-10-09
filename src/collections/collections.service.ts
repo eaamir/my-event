@@ -1,0 +1,105 @@
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import { Collection, CollectionDocument } from './schemas/collection.schema';
+import { CreateCollectionDto } from './dto/create-collection.dto';
+import { UpdateCollectionDto } from './dto/update-collection.dto';
+import { GetCollectionsQueryDto } from './dto/get-collections.dto';
+import { CreateCollectionSuperadminDto } from './dto/create-collection-superadmin.dto';
+import { UpdateCollectionSuperadminDto } from './dto/update-collection-superadmin.dto';
+
+@Injectable()
+export class CollectionsService {
+  constructor(
+    @InjectModel(Collection.name)
+    private readonly collectionModel: Model<CollectionDocument>,
+  ) {}
+
+  // ------------------ SUPERADMIN ------------------
+
+  async findAll(query: GetCollectionsQueryDto) {
+    const filter: any = {};
+
+    if (query.name) filter.name = { $regex: query.name, $options: 'i' };
+
+    // ✅ Only convert and add status if it's a valid number
+    const status = Number(query.status);
+    if (!isNaN(status)) filter.status = status;
+
+    const collections = await this.collectionModel
+      .find(filter)
+      .populate('owner');
+    const total = await this.collectionModel.countDocuments(filter);
+
+    return { data: collections, pagination: { total } };
+  }
+
+  async findOneBySuperadmin(id: string) {
+    const collection = await this.collectionModel
+      .findById(id)
+      .populate('owner');
+    if (!collection) throw new NotFoundException('Collection not found');
+    return collection;
+  }
+
+  async createBySuperadmin(dto: CreateCollectionSuperadminDto) {
+    const newCollection = new this.collectionModel(dto);
+    return newCollection.save();
+  }
+
+  async updateBySuperadmin(id: string, dto: UpdateCollectionSuperadminDto) {
+    const collection = await this.collectionModel.findByIdAndUpdate(id, dto, {
+      new: true,
+    });
+    if (!collection) throw new NotFoundException('Collection not found');
+    return collection;
+  }
+
+  // ------------------ OWNER ------------------
+
+  async findAllOwn(ownerId: string, query: GetCollectionsQueryDto) {
+    const filter: any = { owner: new Types.ObjectId(ownerId) };
+
+    if (query.name) filter.name = { $regex: query.name, $options: 'i' };
+
+    const status = Number(query.status);
+    if (!isNaN(status)) filter.status = status;
+
+    return this.collectionModel.find(filter).populate('owner');
+  }
+
+  async findOneOwn(ownerId: string, id: string) {
+    const collection = await this.collectionModel
+      .findOne({ _id: id, owner: new Types.ObjectId(ownerId) })
+      .populate('owner');
+
+    if (!collection)
+      throw new NotFoundException('Collection not found or not yours');
+    return collection;
+  }
+
+  async createOwn(ownerId: string, dto: CreateCollectionDto) {
+    const newCollection = new this.collectionModel({
+      ...dto,
+      owner: new Types.ObjectId(ownerId),
+    });
+    return newCollection.save();
+  }
+
+  async updateOwn(ownerId: string, id: string, dto: UpdateCollectionDto) {
+    const collection = await this.collectionModel.findOne({
+      _id: id,
+      owner: new Types.ObjectId(ownerId),
+    });
+
+    if (!collection)
+      throw new ForbiddenException('Not allowed or collection not found');
+
+    Object.assign(collection, dto);
+    return collection.save();
+  }
+}

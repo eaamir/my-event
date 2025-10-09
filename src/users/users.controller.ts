@@ -29,7 +29,7 @@ import {
   ApiBearerAuth,
   ApiConsumes,
 } from '@nestjs/swagger';
-import { GetUsersQueryDto } from './dto/get-users-dto';
+import { GetUsersQueryDto } from './dto/get-users.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Express } from 'express';
 import type { Response } from 'express';

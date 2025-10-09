@@ -8,9 +8,7 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { GetUsersQueryDto } from './dto/get-users-dto';
-import { unlink } from 'fs/promises';
-import { join } from 'path';
+import { GetUsersQueryDto } from './dto/get-users.dto';
 
 @Injectable()
 export class UsersService {
