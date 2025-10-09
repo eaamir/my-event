@@ -8,6 +8,7 @@ import {
   Request,
   UseGuards,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -108,5 +109,18 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User updated successfully.' })
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.SUPERADMIN)
+  @Delete(':id')
+  @ApiOperation({
+    summary: 'Delete specific user',
+    description:
+      'Deletes a user and returns their data in response. Only SUPERADMIN can access.',
+  })
+  @ApiResponse({ status: 200, description: 'User deleted.' })
+  deleteUser(@Param('id') id: string) {
+    return this.usersService.deleteUser(id);
   }
 }
