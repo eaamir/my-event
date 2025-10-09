@@ -16,35 +16,29 @@ export class UsersService {
 
     const filters: any = {};
 
-    // Filters for name & phone
     if (name) filters.name = { $regex: name, $options: 'i' };
     if (phone) filters.phone = { $regex: phone, $options: 'i' };
 
-    // Convert to string for safe comparison
     const genderStr = gender !== undefined ? String(gender) : undefined;
     const statusStr = status !== undefined ? String(status) : undefined;
 
-    // Gender filter
+    // ✅ gender filter (handles both number & string)
     if (genderStr === '1' || genderStr === '2') {
-      filters.gender = Number(genderStr); // 1 or 2
+      filters.$or = [{ gender: Number(genderStr) }, { gender: genderStr }];
     }
 
-    // Status filter
+    // ✅ status filter
     if (statusStr === '0' || statusStr === '1') {
-      filters.status = Number(statusStr); // 0 or 1
+      filters.status = Number(statusStr);
     }
 
-    // Role filter
     if (role) filters.role = role;
 
-    // Pagination
     const limit = per_page ? Number(per_page) : 20;
     const currentPage = page ? Number(page) : 1;
     const skip = (currentPage - 1) * limit;
 
-    // Fetch users
     const users = await this.userModel.find(filters).skip(skip).limit(limit);
-
     const total = await this.userModel.countDocuments(filters);
 
     return { users, total, page: currentPage, per_page: limit };

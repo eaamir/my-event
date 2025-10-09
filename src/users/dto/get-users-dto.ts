@@ -1,5 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsNumberString, IsString, IsEnum } from 'class-validator';
+import {
+  IsOptional,
+  IsNumberString,
+  IsString,
+  IsEnum,
+  IsNumber,
+} from 'class-validator';
 import { UserRole } from '../schemas/user.schema';
 
 export class GetUsersQueryDto {
@@ -31,7 +37,7 @@ export class GetUsersQueryDto {
     description: 'Filter by gender (1=Male, 2=Female)',
   })
   @IsOptional()
-  @IsNumberString()
+  @IsNumber()
   gender?: number;
 
   @ApiPropertyOptional({ enum: UserRole, description: 'Filter by user role' })

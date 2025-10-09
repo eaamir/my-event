@@ -19,7 +19,7 @@ export class CreateUserDto {
   avatar?: string;
 
   @ApiProperty({ example: 'User Fullname', description: 'User fullname' })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   name: string;
 
