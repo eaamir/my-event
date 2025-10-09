@@ -1,11 +1,16 @@
-// src/users/users.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUsersQueryDto } from './dto/get-users-dto';
+import { unlink } from 'fs/promises';
+import { join } from 'path';
 
 @Injectable()
 export class UsersService {
@@ -22,12 +27,10 @@ export class UsersService {
     const genderStr = gender !== undefined ? String(gender) : undefined;
     const statusStr = status !== undefined ? String(status) : undefined;
 
-    // ✅ gender filter (handles both number & string)
     if (genderStr === '1' || genderStr === '2') {
       filters.$or = [{ gender: Number(genderStr) }, { gender: genderStr }];
     }
 
-    // ✅ status filter
     if (statusStr === '0' || statusStr === '1') {
       filters.status = Number(statusStr);
     }
@@ -79,8 +82,41 @@ export class UsersService {
 
   async deleteUser(userId: string) {
     const user = await this.userModel.findByIdAndDelete(userId);
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  // --- AVATAR HANDLING ---
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No file uploaded');
+
+    const avatarPath = `/uploads/avatars/${file.filename}`;
+
+    const user = await this.userModel.findByIdAndUpdate(
+      userId,
+      { avatar: avatarPath },
+      { new: true },
+    );
 
     if (!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async deleteAvatar(userId: string) {
+    const user = await this.userModel.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+
+    // Optional: remove the file from uploads folder
+    if (user.avatar) {
+      const fs = require('fs');
+      const path = require('path');
+      const filePath = path.join(process.cwd(), user.avatar);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+
+    user.avatar = undefined;
+    await user.save();
+
+    return { message: 'Avatar deleted' };
   }
 }

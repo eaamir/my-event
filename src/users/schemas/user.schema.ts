@@ -13,31 +13,31 @@ export enum UserRole {
 @Schema({ timestamps: true })
 export class User {
   @Prop()
-  name: string;
+  name?: string;
 
   @Prop()
-  avatar: string;
+  avatar?: string;
 
   @Prop({ unique: true, required: true })
   phone: string;
 
   @Prop()
-  email: string;
+  email?: string;
 
   @Prop()
-  birth_date: string;
+  birth_date?: string;
 
   @Prop()
-  gender: number;
+  gender?: number;
 
   @Prop({ type: String, enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
   @Prop({ default: 0 })
-  credit: number;
+  credit?: number;
 
   @Prop({ default: 0 })
-  blocked_credit: number;
+  blocked_credit?: number;
 
   @Prop({ type: Number, enum: [0, 1], default: 1 })
   status: number;

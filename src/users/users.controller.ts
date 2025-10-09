@@ -9,6 +9,9 @@ import {
   UseGuards,
   Query,
   Delete,
+  UploadedFile,
+  UseInterceptors,
+  Res,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -24,8 +27,13 @@ import {
   ApiParam,
   ApiBody,
   ApiBearerAuth,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { GetUsersQueryDto } from './dto/get-users-dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Express } from 'express';
+import type { Response } from 'express';
+import { join } from 'path';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -69,6 +77,35 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Profile updated successfully.' })
   updateOwn(@Request() req, @Body() dto: UpdateUserWithoutRoleDto) {
     return this.usersService.updateOwn(req.user.userId, dto);
+  }
+
+  // --- AVATAR ENDPOINTS ---
+  @UseGuards(AuthGuard('jwt'))
+  @Post('avatar')
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      dest: './uploads/avatars',
+      limits: { fileSize: 1 * 1024 * 1024 },
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        avatar: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  uploadAvatar(@Request() req, @UploadedFile() file: Express.Multer.File) {
+    return this.usersService.uploadAvatar(req.user.userId, file);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('avatar')
+  @ApiOperation({ summary: 'Delete own avatar' })
+  deleteAvatar(@Request() req) {
+    return this.usersService.deleteAvatar(req.user.userId);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
