@@ -154,20 +154,33 @@ export class AuthService {
     const isValid = await bcrypt.compare(refreshToken, user.refreshTokenHash);
     if (!isValid) throw new UnauthorizedException('Invalid refresh token');
 
-    // ✅ Cast _id to Types.ObjectId, then to string
     const userId = (user._id as Types.ObjectId).toString();
-
     const payload = {
       sub: userId,
       phone: user.phone,
       role: user.role,
     };
 
+    // Generate new access token
     const newAccessToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
       expiresIn: process.env.ACCESS_EXPIRES_IN || '15m',
     });
 
-    return { accessToken: newAccessToken };
+    // Generate new refresh token
+    const newRefreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: process.env.REFRESH_EXPIRES_IN || '7d',
+    });
+
+    // Hash and store new refresh token
+    user.refreshTokenHash = await bcrypt.hash(newRefreshToken, 10);
+    await user.save();
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+      user,
+    };
   }
 }
