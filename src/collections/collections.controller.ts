@@ -72,6 +72,12 @@ export class CollectionsController {
     type: String,
     description: 'Filter by collection status (0=INACTIVE, 1=ACTIVE)',
   })
+  @ApiQuery({
+    name: 'owner_id',
+    required: false,
+    type: String,
+    description: 'Filter by collection owner id',
+  })
   getAll(@Query() query: GetCollectionsQueryDto) {
     return this.collectionsService.findAll(query);
   }
@@ -212,7 +218,7 @@ export class CollectionsController {
       ],
       {
         storage: diskStorage({ destination: './uploads/collections' }),
-        limits: { fileSize: 1 * 1024 * 1024 },
+        limits: { fileSize: 1 * 1024 * 1024 }, // 1MB
       },
     ),
   )
@@ -222,7 +228,7 @@ export class CollectionsController {
       'Create a new collection. Owner can provide optional logo and cover files (max 1MB each).',
     type: CreateCollectionDto,
   })
-  createOwn(
+  async createOwn(
     @Req() req,
     @Body() dto: CreateCollectionDto,
     @UploadedFiles()
@@ -230,7 +236,11 @@ export class CollectionsController {
   ) {
     if (files?.logo?.[0]) dto.logo = files.logo[0].path;
     if (files?.cover?.[0]) dto.cover = files.cover[0].path;
-    return this.collectionsService.createOwn(req.user._id, dto);
+
+    const ownerId = req.user._id;
+    if (!ownerId) throw new Error('Owner ID is required');
+
+    return this.collectionsService.createOwn(ownerId, dto);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)

@@ -61,7 +61,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 200, description: 'Current user info returned.' })
   getOwn(@Request() req) {
-    return this.usersService.findOwnInfo(req.user.userId);
+    return this.usersService.findOwnInfo(req.user._id);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -76,7 +76,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 200, description: 'Profile updated successfully.' })
   updateOwn(@Request() req, @Body() dto: UpdateUserWithoutRoleDto) {
-    return this.usersService.updateOwn(req.user.userId, dto);
+    return this.usersService.updateOwn(req.user._id, dto);
   }
 
   // --- AVATAR ENDPOINTS ---
@@ -98,14 +98,14 @@ export class UsersController {
     },
   })
   uploadAvatar(@Request() req, @UploadedFile() file: Express.Multer.File) {
-    return this.usersService.uploadAvatar(req.user.userId, file);
+    return this.usersService.uploadAvatar(req.user._id, file);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Delete('avatar')
   @ApiOperation({ summary: 'Delete own avatar' })
   deleteAvatar(@Request() req) {
-    return this.usersService.deleteAvatar(req.user.userId);
+    return this.usersService.deleteAvatar(req.user._id);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)

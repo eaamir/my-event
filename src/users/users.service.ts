@@ -51,8 +51,8 @@ export class UsersService {
     return user;
   }
 
-  async findOwnInfo(userId: string) {
-    const user = await this.userModel.findById(userId);
+  async findOwnInfo(_id: string) {
+    const user = await this.userModel.findById(_id);
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
@@ -70,28 +70,28 @@ export class UsersService {
     return user;
   }
 
-  async updateOwn(userId: string, updateUserDto: UpdateUserDto) {
-    const user = await this.userModel.findByIdAndUpdate(userId, updateUserDto, {
+  async updateOwn(_id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userModel.findByIdAndUpdate(_id, updateUserDto, {
       new: true,
     });
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
-  async deleteUser(userId: string) {
-    const user = await this.userModel.findByIdAndDelete(userId);
+  async deleteUser(_id: string) {
+    const user = await this.userModel.findByIdAndDelete(_id);
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
   // --- AVATAR HANDLING ---
-  async uploadAvatar(userId: string, file: Express.Multer.File) {
+  async uploadAvatar(_id: string, file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file uploaded');
 
     const avatarPath = `/uploads/avatars/${file.filename}`;
 
     const user = await this.userModel.findByIdAndUpdate(
-      userId,
+      _id,
       { avatar: avatarPath },
       { new: true },
     );
@@ -100,8 +100,8 @@ export class UsersService {
     return user;
   }
 
-  async deleteAvatar(userId: string) {
-    const user = await this.userModel.findById(userId);
+  async deleteAvatar(_id: string) {
+    const user = await this.userModel.findById(_id);
     if (!user) throw new NotFoundException('User not found');
 
     // Optional: remove the file from uploads folder

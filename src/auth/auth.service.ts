@@ -111,10 +111,10 @@ export class AuthService {
     }
 
     // ✅ Cast _id to string to remove 'unknown' error
-    const userId = (user._id as Types.ObjectId).toString();
+    const _id = (user._id as Types.ObjectId).toString();
 
     // JWT payload
-    const jwtPayload = { sub: userId, phone: user.phone, role: user.role };
+    const jwtPayload = { sub: _id, phone: user.phone, role: user.role };
 
     const accessToken = this.jwtService.sign(jwtPayload, {
       secret: process.env.JWT_ACCESS_SECRET,
@@ -134,7 +134,7 @@ export class AuthService {
       accessToken,
       refreshToken,
       user: {
-        id: userId,
+        id: _id,
         phone: user.phone,
         role: user.role,
         name: user.name,
@@ -154,9 +154,9 @@ export class AuthService {
     const isValid = await bcrypt.compare(refreshToken, user.refreshTokenHash);
     if (!isValid) throw new UnauthorizedException('Invalid refresh token');
 
-    const userId = (user._id as Types.ObjectId).toString();
+    const _id = (user._id as Types.ObjectId).toString();
     const payload = {
-      sub: userId,
+      sub: _id,
       phone: user.phone,
       role: user.role,
     };

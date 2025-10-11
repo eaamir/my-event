@@ -24,10 +24,18 @@ export class GetCollectionsQueryDto {
   name?: string;
 
   @ApiPropertyOptional({
-    example: 'active',
+    example: '1',
     description: 'Filter by collection status',
   })
   @IsOptional()
   @IsString()
   status?: string;
+
+  @ApiPropertyOptional({
+    example: 'dnawoid18238913891nkawd',
+    description: 'Filter by collection owner id',
+  })
+  @IsOptional()
+  @IsString()
+  owner_id?: string;
 }

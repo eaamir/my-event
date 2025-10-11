@@ -26,6 +26,10 @@ export class CollectionsService {
 
     if (query.name) filter.name = { $regex: query.name, $options: 'i' };
 
+    if (query.owner_id && Types.ObjectId.isValid(query.owner_id)) {
+      filter.owner = new Types.ObjectId(query.owner_id);
+    }
+
     // ✅ Only convert and add status if it's a valid number
     const status = Number(query.status);
     if (!isNaN(status)) filter.status = status;
@@ -61,21 +65,36 @@ export class CollectionsService {
 
   // ------------------ OWNER ------------------
 
-  async findAllOwn(ownerId: string, query: GetCollectionsQueryDto) {
-    const filter: any = { owner: new Types.ObjectId(ownerId) };
+  async findAllOwn(
+    ownerId: string | Types.ObjectId,
+    query: GetCollectionsQueryDto,
+  ) {
+    const filter: any = {};
 
+    // owner filter
+    filter.owner =
+      typeof ownerId === 'string' ? new Types.ObjectId(ownerId) : ownerId;
+
+    // name filter
     if (query.name) filter.name = { $regex: query.name, $options: 'i' };
 
-    const status = Number(query.status);
-    if (!isNaN(status)) filter.status = status;
+    // status filter
+    if (query.status !== undefined && query.status !== '') {
+      const status = Number(query.status);
+      if (!isNaN(status)) filter.status = status;
+    }
 
-    return this.collectionModel.find(filter).populate('owner');
+    const collections = await this.collectionModel
+      .find(filter)
+      .select('-owner');
+
+    return collections;
   }
 
   async findOneOwn(ownerId: string, id: string) {
     const collection = await this.collectionModel
       .findOne({ _id: id, owner: new Types.ObjectId(ownerId) })
-      .populate('owner');
+      .select('-owner');
 
     if (!collection)
       throw new NotFoundException('Collection not found or not yours');
@@ -83,6 +102,7 @@ export class CollectionsService {
   }
 
   async createOwn(ownerId: string, dto: CreateCollectionDto) {
+    if (!ownerId) throw new Error('Owner ID is required');
     const newCollection = new this.collectionModel({
       ...dto,
       owner: new Types.ObjectId(ownerId),
