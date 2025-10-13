@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsMongoId } from 'class-validator';
 
 export class CreateCollectionDto {
   @ApiProperty({ example: 'My Collection', description: 'Collection name' })
@@ -20,4 +20,13 @@ export class CreateCollectionDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Array of organizer user IDs',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsMongoId({ each: true })
+  organizers?: string[];
 }

@@ -10,6 +10,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFiles,
+  ForbiddenException,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -193,6 +194,27 @@ export class CollectionsController {
   })
   getAllOwn(@Req() req, @Query() query: GetCollectionsQueryDto) {
     return this.collectionsService.findAllOwn(req.user._id, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.OWNER, UserRole.ORGANIZER)
+  @Get('active')
+  @ApiOperation({
+    summary: 'Get all active collections (owner & organizer)',
+    description: 'Retrieve all collections for owner and organizers.',
+  })
+  getAllAssigned(@Req() req, @Query() query: GetCollectionsQueryDto) {
+    const { role, _id } = req.user;
+
+    if (role === UserRole.OWNER) {
+      return this.collectionsService.findOwnActiveCollections(_id);
+    }
+
+    if (role === UserRole.ORGANIZER) {
+      return this.collectionsService.findAssignedCollections(_id);
+    }
+
+    throw new ForbiddenException('Access denied');
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)

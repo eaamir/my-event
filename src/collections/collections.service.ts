@@ -104,8 +104,9 @@ export class CollectionsService {
   async createOwn(ownerId: string, dto: CreateCollectionDto) {
     if (!ownerId) throw new Error('Owner ID is required');
 
-    const { name } = dto;
+    const { name, organizers } = dto;
 
+    // check for duplicate name
     const existingCollection = await this.collectionModel.findOne({
       name,
       owner: new Types.ObjectId(ownerId),
@@ -115,38 +116,70 @@ export class CollectionsService {
       throw new BadRequestException('مجموعه‌ای با این نام قبلا ثبت کردید');
     }
 
+    // map organizers to ObjectId if provided
+    const organizersIds = organizers?.map((id) => new Types.ObjectId(id)) || [];
+
     const newCollection = await this.collectionModel.create({
       ...dto,
       owner: new Types.ObjectId(ownerId),
+      organizers: organizersIds,
     });
 
     return newCollection;
   }
 
   async updateOwn(ownerId: string, id: string, dto: UpdateCollectionDto) {
-    const { name } = dto;
+    const { name, organizers } = dto;
 
-    const existingCollection = await this.collectionModel.findOne({
+    // check duplicate
+    const duplicate = await this.collectionModel.findOne({
       name,
       owner: new Types.ObjectId(ownerId),
+      _id: { $ne: id },
     });
 
-    if (
-      existingCollection &&
-      (existingCollection._id as Types.ObjectId).toString() !== id
-    ) {
+    if (duplicate) {
       throw new BadRequestException('مجموعه‌ای با این نام قبلا ثبت کردید');
     }
 
-    const collection = await this.collectionModel.findOne({
-      _id: id,
-      owner: new Types.ObjectId(ownerId),
-    });
+    // build update object
+    const updateData: any = { ...dto };
 
-    if (!collection)
-      throw new ForbiddenException('Not allowed or collection not found');
+    if (organizers) {
+      updateData.organizers = organizers.map((id) => new Types.ObjectId(id));
+    }
 
-    Object.assign(collection, dto);
-    return collection.save();
+    // update collection
+    const collection = await this.collectionModel.findOneAndUpdate(
+      { _id: id, owner: new Types.ObjectId(ownerId) },
+      updateData,
+      { new: true }, // ✅ return updated version
+    );
+
+    if (!collection) {
+      throw new ForbiddenException('Collection not found or not accessible');
+    }
+
+    return collection;
+  }
+
+  // owner get active collections
+  async findOwnActiveCollections(ownerId: string) {
+    return this.collectionModel
+      .find({
+        owner: new Types.ObjectId(ownerId),
+        status: 1, // only active collections
+      })
+      .lean();
+  }
+
+  // organizer get active collections
+  async findAssignedCollections(userId: string) {
+    return this.collectionModel
+      .find({
+        organizers: new Types.ObjectId(userId),
+        status: 1, // only active collections
+      })
+      .lean();
   }
 }

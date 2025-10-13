@@ -34,9 +34,8 @@ export class Collection {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   owner: User | Types.ObjectId;
 
-  // 👇 NEW FIELD: list of events the collection is connected to
-  //   @Prop({ type: [{ type: Types.ObjectId, ref: 'Event' }] })
-  //   events: (Event | Types.ObjectId)[];
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
+  organizers: User[] | Types.ObjectId[];
 }
 
 export const CollectionSchema = SchemaFactory.createForClass(Collection);
