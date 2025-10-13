@@ -56,8 +56,6 @@ export class AuthService {
       { secret: process.env.TEMP_SECRET, expiresIn: '5m' },
     );
 
-    console.log(`OTP for ${phone}: ${otp}`);
-
     return { message: 'OTP sent', tempToken, otp }; // remove otp in production
   }
 

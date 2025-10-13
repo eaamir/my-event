@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -96,21 +97,47 @@ export class CollectionsService {
       .findOne({ _id: id, owner: new Types.ObjectId(ownerId) })
       .select('-owner');
 
-    if (!collection)
-      throw new NotFoundException('Collection not found or not yours');
+    if (!collection) throw new NotFoundException('Collection not found');
     return collection;
   }
 
   async createOwn(ownerId: string, dto: CreateCollectionDto) {
     if (!ownerId) throw new Error('Owner ID is required');
-    const newCollection = new this.collectionModel({
+
+    const { name } = dto;
+
+    const existingCollection = await this.collectionModel.findOne({
+      name,
+      owner: new Types.ObjectId(ownerId),
+    });
+
+    if (existingCollection) {
+      throw new BadRequestException('مجموعه‌ای با این نام قبلا ثبت کردید');
+    }
+
+    const newCollection = await this.collectionModel.create({
       ...dto,
       owner: new Types.ObjectId(ownerId),
     });
-    return newCollection.save();
+
+    return newCollection;
   }
 
   async updateOwn(ownerId: string, id: string, dto: UpdateCollectionDto) {
+    const { name } = dto;
+
+    const existingCollection = await this.collectionModel.findOne({
+      name,
+      owner: new Types.ObjectId(ownerId),
+    });
+
+    if (
+      existingCollection &&
+      (existingCollection._id as Types.ObjectId).toString() !== id
+    ) {
+      throw new BadRequestException('مجموعه‌ای با این نام قبلا ثبت کردید');
+    }
+
     const collection = await this.collectionModel.findOne({
       _id: id,
       owner: new Types.ObjectId(ownerId),

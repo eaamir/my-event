@@ -32,8 +32,6 @@ import {
 import { GetUsersQueryDto } from './dto/get-users.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Express } from 'express';
-import type { Response } from 'express';
-import { join } from 'path';
 
 @ApiTags('Users')
 @ApiBearerAuth()

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'https://image-link',
     description: 'User image link',
   })
@@ -18,12 +18,15 @@ export class CreateUserDto {
   @IsString()
   avatar?: string;
 
-  @ApiProperty({ example: 'User Fullname', description: 'User fullname' })
+  @ApiPropertyOptional({
+    example: 'User Fullname',
+    description: 'User fullname',
+  })
   @IsOptional()
   @IsString()
   name: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'sample@test.com',
     description: 'User email',
   })
@@ -31,7 +34,7 @@ export class CreateUserDto {
   @IsEmail()
   email?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '1375-06-12',
     description: 'User birth date',
   })
@@ -42,7 +45,7 @@ export class CreateUserDto {
   )
   birth_date?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '1',
     description: 'User gender',
   })
@@ -58,7 +61,7 @@ export class CreateUserDto {
   @IsIn(['user', 'organizer', 'owner', 'superadmin'])
   role: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '0',
     description: 'User credit value',
   })
@@ -66,7 +69,7 @@ export class CreateUserDto {
   @IsNumber()
   credit?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '0',
     description: 'User blocked credit value',
   })

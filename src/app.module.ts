@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { CollectionsModule } from './collections/collections.module';
+import { ContactsModule } from './contacts/contacts.module';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -18,6 +19,7 @@ dotenv.config();
     AuthModule,
     UsersModule,
     CollectionsModule,
+    ContactsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
