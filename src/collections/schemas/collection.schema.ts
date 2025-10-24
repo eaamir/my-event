@@ -35,7 +35,7 @@ export class Collection {
   owner: User | Types.ObjectId;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
-  organizers: User[] | Types.ObjectId[];
+  organizers: (User | Types.ObjectId)[];
 }
 
 export const CollectionSchema = SchemaFactory.createForClass(Collection);

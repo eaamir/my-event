@@ -72,14 +72,11 @@ export class CollectionsService {
   ) {
     const filter: any = {};
 
-    // owner filter
     filter.owner =
       typeof ownerId === 'string' ? new Types.ObjectId(ownerId) : ownerId;
 
-    // name filter
     if (query.name) filter.name = { $regex: query.name, $options: 'i' };
 
-    // status filter
     if (query.status !== undefined && query.status !== '') {
       const status = Number(query.status);
       if (!isNaN(status)) filter.status = status;
